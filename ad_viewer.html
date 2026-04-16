@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch Ad</title>
+    <style>
+        :root { --accent:#00d2ff; --accent2:#3a7bd5; --green:#00e676; --orange:#ffb347; --red:#ff5252; --bg:#0d0d1a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.08); }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative}
+        body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(80px);opacity:.15;pointer-events:none;z-index:0}
+        body::before{width:350px;height:350px;background:var(--accent2);top:-100px;left:-80px}
+        body::after{width:300px;height:300px;background:var(--accent);bottom:-80px;right:-60px}
+        .container{position:relative;z-index:1;text-align:center;padding:28px 22px;width:100%;max-width:360px}
+        .header{margin-bottom:28px}
+        .ad-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,136,204,.15);border:1px solid rgba(0,136,204,.3);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+        .ad-badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pdot 1.2s ease infinite}
+        @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+        .ad-title{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .timer-wrap{position:relative;width:180px;height:180px;margin:0 auto 24px}
+        .timer-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+        circle{fill:none;stroke-linecap:round}
+        .c-bg{stroke:var(--border);stroke-width:9}
+        .c-glow{stroke:rgba(0,210,255,.08);stroke-width:16}
+        .c-prog{stroke:url(#tGrad);stroke-width:9;stroke-dasharray:502.65;stroke-dashoffset:0;transition:stroke-dashoffset .25s linear;filter:drop-shadow(0 0 6px rgba(0,210,255,.5))}
+        .timer-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+        .timer-num{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;background:linear-gradient(160deg,#fff 60%,rgba(0,210,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .timer-lbl{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+        .steps{display:flex;align-items:center;justify-content:center;margin-bottom:22px}
+        .sdot{width:10px;height:10px;border-radius:50%;background:var(--border);border:1.5px solid rgba(255,255,255,.1);transition:all .4s ease;flex-shrink:0}
+        .sdot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px rgba(0,210,255,.6);transform:scale(1.3)}
+        .sdot.done{background:var(--green);border-color:var(--green)}
+        .sline{height:2px;flex:1;background:var(--border);max-width:32px;transition:background .4s ease}
+        .sline.done{background:var(--green)}
+        .status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 18px;font-size:14px;font-weight:600;margin-bottom:16px;transition:all .4s ease}
+        .status-card.watching{border-color:rgba(255,165,0,.25);color:var(--orange);background:rgba(255,165,0,.07)}
+        .status-card.almost{border-color:rgba(0,230,118,.3);color:var(--green);background:rgba(0,230,118,.08)}
+        .status-card.verified{border-color:rgba(0,230,118,.4);color:var(--green);background:rgba(0,230,118,.12)}
+        .open-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px 24px;border:none;border-radius:16px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:16px;transition:all .25s ease;background:linear-gradient(135deg,#0088cc,#005fa3);color:#fff;box-shadow:0 6px 24px rgba(0,136,204,.3),0 1px 0 rgba(255,255,255,.1) inset}
+        .open-btn:active{transform:scale(.97)}
+        .open-btn.opened{background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);box-shadow:none;cursor:default;border:1px solid var(--border)}
+        .pbar-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+        .pbar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s linear;box-shadow:0 0 8px rgba(0,210,255,.4)}
+        .verified-state{display:none}
+        .verified-state.show{display:flex;flex-direction:column;align-items:center}
+        .v-ring{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#00e676,#00c853);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 0 40px rgba(0,230,118,.4);animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) forwards}
+        @keyframes popIn{0%{transform:scale(0) rotate(-20deg);opacity:0}70%{transform:scale(1.1) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+        .v-ring svg{width:46px;height:46px;fill:#fff}
+        .v-text{font-size:22px;font-weight:800;color:var(--green);margin-bottom:6px}
+        .v-sub{font-size:13px;color:rgba(255,255,255,.4)}
+        .warn-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;align-items:flex-end}
+        .warn-overlay.show{display:flex}
+        .warn-box{background:#151526;border-radius:24px 24px 0 0;border-top:1px solid var(--border);padding:28px 24px 32px;width:100%;animation:slideUp .3s ease}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .warn-icon{font-size:36px;margin-bottom:12px}
+        .warn-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--red)}
+        .warn-body{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:22px;line-height:1.5}
+        .warn-btns{display:flex;gap:12px}
+        .warn-btns button{flex:1;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer}
+        .btn-stay{background:linear-gradient(135deg,#0088cc,#005fa3);color:#fff}
+        .btn-leave{background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid var(--border)}
+    </style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;pointer-events:none">
+    <defs>
+        <linearGradient id="tGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#00d2ff"/>
+            <stop offset="100%" stop-color="#3a7bd5"/>
+        </linearGradient>
+    </defs>
+</svg>
+
+<div class="container">
+    <div id="watchingState">
+        <div class="header">
+            <div class="ad-badge">Watching Ad</div>
+            <div class="ad-title" id="adTitle">Ad 1 of 5</div>
+        </div>
+        <div class="timer-wrap">
+            <svg width="180" height="180" viewBox="0 0 180 180">
+                <circle class="c-glow" cx="90" cy="90" r="80"/>
+                <circle class="c-bg"   cx="90" cy="90" r="80"/>
+                <circle class="c-prog" id="cProg" cx="90" cy="90" r="80"/>
+            </svg>
+            <div class="timer-inner">
+                <div class="timer-num" id="timerNum">30</div>
+                <div class="timer-lbl">seconds</div>
+            </div>
+        </div>
+        <div class="steps" id="stepDots"></div>
+        <div class="status-card watching" id="statusCard">&#x23F3; Keep the ad open...</div>
+        <button class="open-btn" id="openBtn" onclick="openAd()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+            &#x1F4F2; Open Ad in Browser
+        </button>
+        <div class="pbar-track"><div class="pbar-fill" id="pbarFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="verified-state" id="verifiedState">
+        <div class="v-ring"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>
+        <div class="v-text">&#x2705; Ad Verified!</div>
+        <div class="v-sub">Returning to bot&#x2026;</div>
+    </div>
+</div>
+
+<div class="warn-overlay" id="warnOverlay">
+    <div class="warn-box">
+        <div class="warn-icon">&#x26A0;&#xFE0F;</div>
+        <div class="warn-title">Still watching!</div>
+        <div class="warn-body">The ad is still running. If you leave now, your progress for this ad will be lost and you'll have to restart it.</div>
+        <div class="warn-btns">
+            <button class="btn-stay"  onclick="stayHere()">Stay &amp; Watch</button>
+            <button class="btn-leave" onclick="leaveAnyway()">Leave Anyway</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    const params  = new URLSearchParams(window.location.search);
+    const adUrl   = decodeURIComponent(params.get('ad_url') || '');
+    const timer   = parseInt(params.get('timer')    || '30');
+    const adIndex = parseInt(params.get('ad_index') || '0');
+    const adTotal = parseInt(params.get('ad_total') || '5');
+    const videoId = params.get('video_id') || '';
+
+    const tg = window.Telegram.WebApp;
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor('#0d0d1a'); }     catch(e) {}
+    try { tg.setBackgroundColor('#0d0d1a'); } catch(e) {}
+
+    const timerNum   = document.getElementById('timerNum');
+    const cProg      = document.getElementById('cProg');
+    const pbarFill   = document.getElementById('pbarFill');
+    const statusCard = document.getElementById('statusCard');
+    const openBtn    = document.getElementById('openBtn');
+    const watchingEl = document.getElementById('watchingState');
+    const verifiedEl = document.getElementById('verifiedState');
+    const warnOv     = document.getElementById('warnOverlay');
+
+    document.getElementById('adTitle').textContent = 'Ad ' + (adIndex + 1) + ' of ' + adTotal;
+
+    // Build step dots
+    (function() {
+        var el = document.getElementById('stepDots');
+        for (var i = 0; i < adTotal; i++) {
+            if (i > 0) {
+                var ln = document.createElement('div');
+                ln.className = 'sline' + (i <= adIndex ? ' done' : '');
+                el.appendChild(ln);
+            }
+            var d = document.createElement('div');
+            d.className = 'sdot' + (i < adIndex ? ' done' : i === adIndex ? ' active' : '');
+            el.appendChild(d);
+        }
+    })();
+
+    var CIRC = 2 * Math.PI * 80; // 502.655
+    var adOpened = false;
+
+    function openAd() {
+        if (!adOpened && adUrl) {
+            adOpened = true;
+            tg.openLink(adUrl);
+            openBtn.classList.add('opened');
+            openBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> \u2705 Ad Opened';
+        }
+    }
+    setTimeout(openAd, 700);
+
+    var endTime = Date.now() + timer * 1000;
+    var dataSent = false;
+
+    function tick() {
+        var now     = Date.now();
+        var msLeft  = Math.max(0, endTime - now);
+        var secLeft = Math.ceil(msLeft / 1000);
+        var elapsed = timer - secLeft;
+        var pct     = elapsed / timer;
+
+        timerNum.textContent = secLeft;
+        cProg.style.strokeDashoffset = -(pct * CIRC);
+        pbarFill.style.width = (pct * 100) + '%';
+
+        if (secLeft <= 5 && secLeft > 0) {
+            statusCard.className = 'status-card almost';
+            statusCard.textContent = '\uD83D\uDD25 Almost done \u2014 ' + secLeft + 's left!';
+        } else {
+            statusCard.className = 'status-card watching';
+            statusCard.textContent = '\u23F3 Keep the ad open\u2026 ' + secLeft + 's left';
+        }
+
+        if (secLeft <= 0 && !dataSent) {
+            dataSent = true;
+            timerNum.textContent = '0';
+            pbarFill.style.width = '100%';
+            cProg.style.strokeDashoffset = -CIRC;
+            statusCard.className = 'status-card verified';
+            statusCard.textContent = '\u2705 Verified!';
+            watchingEl.style.display = 'none';
+            verifiedEl.classList.add('show');
+            setTimeout(function() {
+                try {
+                    tg.sendData(JSON.stringify({
+                        action: 'ad_verified', ad_index: adIndex,
+                        video_id: videoId, timer: timer, ts: Date.now()
+                    }));
+                } catch(e) { tg.close(); }
+            }, 900);
+            return;
+        }
+        if (secLeft > 0) { setTimeout(tick, 200); }
+    }
+    tick();
+
+    tg.BackButton.show();
+    tg.BackButton.onClick(function() {
+        if (!dataSent) { warnOv.classList.add('show'); }
+        else { tg.close(); }
+    });
+    function stayHere()    { warnOv.classList.remove('show'); }
+    function leaveAnyway() { tg.close(); }
+</script>
+</body>
+</html>
