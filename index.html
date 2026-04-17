@@ -181,12 +181,11 @@
   try {
     var raw = (tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
     if (!raw) {
-      // fallback: URL query params (dev / direct access)
       var qs = new URLSearchParams(window.location.search);
       raw = qs.get('p') || '';
     }
     if (raw) params = JSON.parse(b64decode(raw));
-  } catch(e) {}
+  } catch(e) { console.error('param parse error', e); }
 
   var adUrl   = params.u || '';
   var timer   = parseInt(params.s) || 30;
@@ -292,4 +291,5 @@
   });
 </script>
 </body>
-</html>
+                                               </html>
+  
