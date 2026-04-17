@@ -274,16 +274,8 @@
   function showVerified() {
     var overlay = document.getElementById('verifiedOverlay');
     overlay.style.display = 'flex';
-    // Send completion signal to bot — this also closes the mini app.
-    // Falls back to plain close() if sendData is unavailable.
-    setTimeout(function() {
-      try {
-        tg.sendData(JSON.stringify({action: "ad_done", v: videoId, i: adIndex}));
-        // sendData closes the mini app automatically — no need for tg.close()
-      } catch(e) {
-        tg.close();
-      }
-    }, 1500);
+    // Close after 1.5s — server timer handles the actual bot-side verification
+    setTimeout(function() { tg.close(); }, 1500);
   }
 
   // ── Back button ──────────────────────────────────────────────────
